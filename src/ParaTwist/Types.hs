@@ -1,4 +1,4 @@
-module ParaTwist where
+module ParaTwist.Types where
 
 import Data.CompactString.Internal as DCSI
 import Data.CompactString.Encodings as DCSE

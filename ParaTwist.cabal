@@ -1,0 +1,25 @@
+name: ParaTwist
+version: 0.0.1
+cabal-version: >= 1.2
+build-type: Simple
+license: AllRightsReserved
+license-file: ""
+description: .
+             .
+             .
+data-dir: ""
+
+Source-repository    head
+  type:              git
+  location:          https://mugenken@github.com/adeven/ParaTwist.git
+
+Executable paraTwist
+    build-depends:  base -any,
+                    compact-string-fix >= 0.3.2,
+                    mtl >= 2.0.1.0,
+                    mongoDB >= 1.1.1
+    main-is: paraTwist.hs
+    other-modules: ParaTwist.Types
+    buildable: True
+    hs-source-dirs: src
+    ghc-options: -Wall -threaded -fno-warn-orphans

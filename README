@@ -1,0 +1,16 @@
+paraTwist - fastcast url parameters into mongodb documents
+
+INSTALL
+
+install haskell-plattform
+install cabal-install
+clone repo
+cd into dir
+run 'cabal install'
+
+USAGE
+
+.. todo ..
+
+
+
