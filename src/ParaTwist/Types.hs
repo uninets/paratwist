@@ -10,6 +10,10 @@ data DatabaseSettings = DatabaseSettings {
         collectionName :: DCSI.CompactString DCSE.UTF8
         }
 
+data WarpSettings = WarpSettings {
+        warpPort :: Int
+        }
+
 -- uid = 40byte (ASCII) poolsize = 200M
 -- countryId = 2byte (ISO-CODE) poolsize=140
 -- device = 10byte poolsize=40

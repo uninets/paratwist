@@ -17,6 +17,12 @@ Executable paraTwist
     build-depends:  base -any,
                     compact-string-fix >= 0.3.2,
                     mtl >= 2.0.1.0,
+                    enumerator >= 0.4.17,
+                    utf8-string >= 0.3.7,
+                    blaze-builder >= 0.3.0.2,
+                    http-types >= 0.6.8,
+                    wai >= 0.4.3,
+                    warp >= 0.4.6.3,
                     mongoDB >= 1.1.1
     main-is: paraTwist.hs
     other-modules: ParaTwist.Types
