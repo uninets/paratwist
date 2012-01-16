@@ -10,7 +10,6 @@ import Network.HTTP.Types (status200, status400, Query)
 import Blaze.ByteString.Builder (copyByteString)
 import qualified Data.ByteString.UTF8 as BU
 import Data.Monoid
-import Data.Enumerator (run_, enumList, ($$))
 import ParaTwist.Types
 import ParaTwist.MongoDB as PTM
 import Data.Maybe (fromJust)
@@ -26,15 +25,18 @@ app :: Monad m => Request -> m Response
 app req = return $
     case pathInfo req of
         ["adeven"] -> unsafeLocalState $ putImpression $ queryString req
-        x -> res $ BU.fromString "400"
+        _          -> res $ BU.fromString "400"
 
 res :: BU.ByteString -> Response
-res code = ResponseBuilder status400 [("Content-Type", "text/plain")]
-        $ mconcat
-        $ map copyByteString [ code ]
+res code
+    | code == "200" = ResponseBuilder status200 [("Content-Type", "text/plain")] $ resBuilder code
+    | otherwise = ResponseBuilder status400 [("Content-Type", "text/plain")] $ resBuilder "400"
+
+resBuilder code = mconcat $ map copyByteString [ code ]
 
 stringifyQuery :: Network.HTTP.Types.Query -> [String]
 stringifyQuery (x:xs) = [ v | v <- BU.toString $ fromJust(snd x) ] : stringifyQuery xs
+stringifyQuery []     = [""]
 
 putImpression :: Network.HTTP.Types.Query -> IO Response
 putImpression paraList = do

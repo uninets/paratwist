@@ -24,7 +24,6 @@ runMongoInsert doc = do
 
 runInsert :: [Field] -> Action IO Value
 runInsert doc = do
-    --clearCollection
     insertDocument doc
 
 mongoField :: [String] -> [Field]
