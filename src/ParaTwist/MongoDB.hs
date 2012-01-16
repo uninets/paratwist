@@ -15,38 +15,27 @@ dbsettings = DatabaseSettings {
         collectionName    = "rawRecords"
         }
 
-adevenImpression :: AdevenImression
-adevenImpression = AdevenImression {
-        uid         = "1234567890abcdefghijklmnopqrstuvwxyz1234",
-        countryId   = "1a",
-        device      = "android",
-        campaignId  = "active",
-        sourceId    = "webseiteXYZ"
-        }
-
-runMongoInsert :: IO ()
-runMongoInsert = do
+runMongoInsert :: [String] -> IO (Either Failure Value)
+runMongoInsert doc = do
     pipe <- runIOE $ connect $ host $ unpack $ hostName dbsettings
-    e <- access pipe master (databaseName dbsettings) runInsert
+    e <- access pipe master (databaseName dbsettings) $ runInsert $ mongoField doc
     close pipe
-    print e
+    return e
 
-runInsert :: Action IO Value
-runInsert = do
-    clearCollection
-    insertDocument
+runInsert :: [Field] -> Action IO Value
+runInsert doc = do
+    --clearCollection
+    insertDocument doc
 
-clearCollection = delete (select [] (collectionName dbsettings))
-
-mongoInsert :: [Field]
-mongoInsert = [
-    "uid"         =: (uid adevenImpression),
-    "countryId"   =: (countryId adevenImpression),
-    "device"      =: (device adevenImpression),
-    "campaignId"  =: (campaignId adevenImpression),
-    "sourceId"    =: (sourceId adevenImpression)
+mongoField :: [String] -> [Field]
+mongoField list = [
+    "uid"         =: list !! 0,
+    "countryId"   =: list !! 1,
+    "device"      =: list !! 2,
+    "campaignId"  =: list !! 3,
+    "sourceId"    =: list !! 4
     ]
 
-insertDocument :: Action IO Value
-insertDocument = insert (collectionName dbsettings) mongoInsert
+insertDocument :: [Field] -> Action IO Value
+insertDocument doc = insert (collectionName dbsettings) doc
 

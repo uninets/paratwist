@@ -6,13 +6,15 @@ module ParaTwist.Warp (
 
 import Network.Wai
 import Network.Wai.Handler.Warp
-import Network.HTTP.Types (status200, status400)
+import Network.HTTP.Types (status200, status400, Query)
 import Blaze.ByteString.Builder (copyByteString)
 import qualified Data.ByteString.UTF8 as BU
 import Data.Monoid
 import Data.Enumerator (run_, enumList, ($$))
 import ParaTwist.Types
-import ParaTwist.MongoDB
+import ParaTwist.MongoDB as PTM
+import Data.Maybe (fromJust)
+import Foreign.Marshal
 
 runTwister :: WarpSettings -> IO ()
 runTwister settings = do
@@ -23,16 +25,20 @@ runTwister settings = do
 app :: Monad m => Request -> m Response
 app req = return $
     case pathInfo req of
-        ["adeven"] -> getParams $ queryString req
-        x -> res400
+        ["adeven"] -> unsafeLocalState $ putImpression $ queryString req
+        x -> res $ BU.fromString "400"
 
-res400 :: Response
-res400 = ResponseBuilder status400 [ ("Content-Type", "text/plain") ]
+res :: BU.ByteString -> Response
+res code = ResponseBuilder status400 [("Content-Type", "text/plain")]
         $ mconcat
-        $ map copyByteString [ "400" ]
+        $ map copyByteString [ code ]
 
-getParams :: Show a => a -> Response
-getParams paraString = ResponseBuilder status200 [("Content-Type", "text/html")]
-        $ mconcat
-        $ map copyByteString [ BU.fromString $ show paraString ]
+stringifyQuery :: Network.HTTP.Types.Query -> [String]
+stringifyQuery (x:xs) = [ v | v <- BU.toString $ fromJust(snd x) ] : stringifyQuery xs
+
+putImpression :: Network.HTTP.Types.Query -> IO Response
+putImpression paraList = do
+    result <- PTM.runMongoInsert $ stringifyQuery $ paraList
+    print result
+    return $ res $ BU.fromString "200"
 
