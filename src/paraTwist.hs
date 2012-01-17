@@ -15,7 +15,6 @@ module Main (
     main
 ) where
 
-import Control.Monad.Trans (liftIO)
 import ParaTwist.Types
 import ParaTwist.Warp
 

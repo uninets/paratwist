@@ -8,23 +8,27 @@ import Network.Wai
 import Network.Wai.Handler.Warp
 import Network.HTTP.Types (status200, status400, Query)
 import Blaze.ByteString.Builder (copyByteString)
+
 import qualified Data.ByteString.UTF8 as BU
 import Data.Monoid
-import ParaTwist.Types
-import ParaTwist.MongoDB as PTM
 import Data.Maybe (fromJust)
 import Foreign.Marshal
+
+import ParaTwist.Types
+import Database.MongoDB
+import ParaTwist.MongoDB as PTM
 
 runTwister :: WarpSettings -> IO ()
 runTwister settings = do
     let port = warpPort settings
+    mongoConn <- PTM.makeConnection
     putStrLn $ "Listening on port " ++ show port
-    run port app
+    run port (app mongoConn)
 
-app :: Monad m => Request -> m Response
-app req = return $
+app :: Monad m => Pipe -> Request -> m Response
+app mongoConn req = return $
     case pathInfo req of
-        ["adeven"] -> unsafeLocalState $ putImpression $ queryString req
+        ["adeven"] -> unsafeLocalState $ putImpression mongoConn $ queryString req
         _          -> res $ BU.fromString "400"
 
 res :: BU.ByteString -> Response
@@ -34,13 +38,13 @@ res code
 
 resBuilder code = mconcat $ map copyByteString [ code ]
 
-stringifyQuery :: Network.HTTP.Types.Query -> [String]
-stringifyQuery (x:xs) = [ v | v <- BU.toString $ fromJust(snd x) ] : stringifyQuery xs
-stringifyQuery []     = [""]
+queryToValueList :: Network.HTTP.Types.Query -> [String]
+queryToValueList (x:xs) = [ v | v <- BU.toString $ fromJust $ snd x ] : queryToValueList xs
+queryToValueList []     = [""]
 
-putImpression :: Network.HTTP.Types.Query -> IO Response
-putImpression paraList = do
-    result <- PTM.runMongoInsert $ stringifyQuery $ paraList
+putImpression :: Pipe -> Network.HTTP.Types.Query -> IO Response
+putImpression mongoConn paraList = do
+    result <- PTM.runMongoInsert mongoConn $ queryToValueList paraList
     print result
     return $ res $ BU.fromString "200"
 

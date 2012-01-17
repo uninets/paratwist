@@ -1,7 +1,9 @@
 {-# LANGUAGE OverloadedStrings, ExtendedDefaultRules #-}
 
 module ParaTwist.MongoDB (
-    runMongoInsert
+    runMongoInsert,
+    makeConnection,
+    closeConnection
 ) where
 
 import Database.MongoDB
@@ -15,11 +17,17 @@ dbsettings = DatabaseSettings {
         collectionName    = "rawRecords"
         }
 
-runMongoInsert :: [String] -> IO (Either Failure Value)
-runMongoInsert doc = do
+makeConnection :: IO Pipe
+makeConnection = do
     pipe <- runIOE $ connect $ host $ unpack $ hostName dbsettings
-    e <- access pipe master (databaseName dbsettings) $ runInsert $ mongoField doc
-    close pipe
+    return pipe
+
+closeConnection :: Pipe -> IO ()
+closeConnection pipe = close pipe
+
+runMongoInsert :: Pipe -> [String] -> IO (Either Failure Value)
+runMongoInsert mongoConn doc = do
+    e <- access mongoConn master (databaseName dbsettings) $ runInsert $ mongoField doc
     return e
 
 runInsert :: [Field] -> Action IO Value
