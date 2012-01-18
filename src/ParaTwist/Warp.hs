@@ -44,7 +44,7 @@ queryToValueList []     = [""]
 
 putImpression :: Pipe -> Network.HTTP.Types.Query -> IO Response
 putImpression mongoConn paraList = do
-    result <- PTM.doMongo mongoConn $ queryToValueList paraList
+    result <- PTM.runMongoInsert mongoConn $ queryToValueList paraList
     print result
     return $ res $ BU.fromString "200"
 
