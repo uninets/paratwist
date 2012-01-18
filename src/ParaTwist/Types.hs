@@ -7,6 +7,8 @@ data DatabaseSettings = DatabaseSettings {
         hostName       :: DCSI.CompactString DCSE.UTF8,
         portNumber     :: Int,
         databaseName   :: DCSI.CompactString DCSE.UTF8,
+        batchSize'     :: Int,
+        serializeFile  :: DCSI.CompactString DCSE.UTF8,
         collectionName :: DCSI.CompactString DCSE.UTF8
         }
 
