@@ -23,9 +23,10 @@ Executable paraTwist
                     http-types >= 0.6.8,
                     wai >= 0.4.3,
                     warp >= 0.4.6.3,
+                    bson >= 0.1.6,
                     mongoDB >= 1.1.1
     main-is: paraTwist.hs
     other-modules: ParaTwist.Types
     buildable: True
     hs-source-dirs: src
-    ghc-options: -Wall -threaded -fno-warn-orphans
+    ghc-options: -Wall -threaded -fllvm -rtsopts

@@ -6,8 +6,8 @@ module ParaTwist.Warp (
 
 import Network.Wai
 import Network.Wai.Handler.Warp
-import Network.HTTP.Types (status200, status400, Query)
-import Blaze.ByteString.Builder (copyByteString)
+import Network.HTTP.Types (status200, status400, Query, QueryItem)
+import Blaze.ByteString.Builder (copyByteString, Builder)
 
 import qualified Data.ByteString.UTF8 as BU
 import Data.Monoid
@@ -36,15 +36,22 @@ res code
     | code == "200" = ResponseBuilder status200 [("Content-Type", "text/plain")] $ resBuilder code
     | otherwise = ResponseBuilder status400 [("Content-Type", "text/plain")] $ resBuilder "400"
 
+resBuilder :: BU.ByteString -> Builder
 resBuilder code = mconcat $ map copyByteString [ code ]
 
-queryToValueList :: Network.HTTP.Types.Query -> [String]
-queryToValueList (x:xs) = [ v | v <- BU.toString $ fromJust $ snd x ] : queryToValueList xs
-queryToValueList []     = [""]
+paraKey :: Network.HTTP.Types.QueryItem -> String
+paraKey (k,_) = BU.toString k
+
+paraValue :: Network.HTTP.Types.QueryItem -> String
+paraValue (_,v) = BU.toString $ fromJust v
+
+queryToValueList :: Network.HTTP.Types.Query -> [(String,String)]
+queryToValueList xs = [ (paraKey x,paraValue x) | x <- xs ]
 
 putImpression :: Pipe -> Network.HTTP.Types.Query -> IO Response
 putImpression mongoConn paraList = do
     result <- PTM.runMongoInsert mongoConn $ queryToValueList paraList
-    print result
-    return $ res $ BU.fromString "200"
+    case result of
+        Right _ -> return $ res $ BU.fromString "200"
+        Left _ -> return $ res $ BU.fromString "400"
 
